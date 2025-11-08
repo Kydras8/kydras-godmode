@@ -1,5 +1,17 @@
-<<<<<<< HEAD
-# Kydras Compliance Monitor Service
+# 🛡️ Kydras Compliance Monitor Service
+
+Live compliance dashboard + governance artifact exporter for **Kydras Systems Inc.**  
+Designed for developers, auditors, and executives—each with tailored endpoints and formats.
+
+---
+
+## 🚀 Quick Start
+
+Install dependencies:
+
+```bash
+npm install
+
 =======
 # Kydras GODMODE Bootstrapper
 
