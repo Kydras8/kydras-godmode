@@ -5,21 +5,6 @@
 ![FAIL](https://img.shields.io/badge/FAIL-1-red?style=for-the-badge)
 ![Total Checks](https://img.shields.io/badge/Total-16-lightgrey?style=for-the-badge)
 
-# 🛡️ Kydras Compliance Monitor Service
-
-Live compliance dashboard + governance artifact exporter for **Kydras Systems Inc.**  
-Designed for developers, auditors, and executives—each with tailored endpoints and formats.
-
----
-
-## 🚀 Quick Start
-
-Install dependencies:
-
-```bash
-npm install
-
-=======
 # ⚡ Kydras GODMODE Bootstrapper
 
 Welcome to **Kydras GODMODE** — a one‑liner bootstrap that transforms any dev box into a compliance‑ready, governance‑exporting, VS Code GODMODE environment.
