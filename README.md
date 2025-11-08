@@ -6,3 +6,16 @@
 ![WARN](https://img.shields.io/badge/WARN-3-yellow?style=for-the-badge)
 ![FAIL](https://img.shields.io/badge/FAIL-1-red?style=for-the-badge)
 ![Total Checks](https://img.shields.io/badge/Total-16-lightgrey?style=for-the-badge)
+
+# ⚡ Kydras GODMODE Bootstrapper
+
+Welcome to **Kydras GODMODE** — a one‑liner bootstrap that transforms any dev box into a compliance‑ready, governance‑exporting, VS Code GODMODE environment.
+
+---
+
+## 🚀 Quick Start
+
+Run this one‑liner in **PowerShell 7+** (Windows, WSL, or Dev Container):
+
+```powershell
+iwr https://raw.githubusercontent.com/Kydras8/kydras-godmode/main/bootstrap-godmode.ps1 | iex
