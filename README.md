@@ -1,3 +1,11 @@
+<!-- Kydras Repo Header -->
+<p align="center">
+  <strong>Kydras Systems Inc.</strong><br/>
+  <em>Nothing is off limits.</em>
+</p>
+
+---
+
 ![Compliance Score](https://img.shields.io/badge/Compliance%20Score-85%25-blue?style=for-the-badge)
 ![Grade](https://img.shields.io/badge/Grade-B-green?style=for-the-badge)
 ![PASS](https://img.shields.io/badge/PASS-12-brightgreen?style=for-the-badge)
@@ -18,3 +26,4 @@ Run this one‑liner in **PowerShell 7+** (Windows, WSL, or Dev Container):
 ```powershell
 iwr https://raw.githubusercontent.com/Kydras8/kydras-godmode/main/bootstrap-godmode.ps1 | iex
 >>>>>>> 88c0420b76d9f6a9225e26a691e0b4f863b32ac4
+
