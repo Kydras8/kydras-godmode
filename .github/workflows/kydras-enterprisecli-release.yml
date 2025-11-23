@@ -1,0 +1,38 @@
+name: Kydras Enterprise CLI Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  build-and-release:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build EXE and ZIP
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $repoRoot   = $env:GITHUB_WORKSPACE
+          $scriptDir  = Join-Path $repoRoot "Apps/CLI"
+          $bundlesDir = Join-Path $repoRoot "Bundles"
+
+          if (-not (Test-Path -LiteralPath $bundlesDir)) {
+            New-Item -ItemType Directory -Path $bundlesDir -Force | Out-Null
+          }
+
+          $updateScript = Join-Path $scriptDir "Update-KydrasEnterpriseCli.ps1"
+          & $updateScript -BumpType "patch" -ChangeSummary "CI build" -BundlesDir $bundlesDir
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            Bundles/*.zip
+            Bundles/*.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
