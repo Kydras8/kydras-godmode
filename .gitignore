@@ -1,0 +1,12 @@
+# Kydras Enterprise CLI build artifacts
+Apps/CLI/*.exe
+Apps/CLI/*.log
+Apps/CLI/_logs/
+Apps/CLI/Backups/
+Apps/CLI/backup-*/
+Apps/CLI/_backup_*/
+Apps/CLI/*.bak-*
+Apps/CLI/*.bak_*
+
+# Root-level backups
+Backups/

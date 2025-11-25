@@ -1,0 +1,2 @@
+Set-Location "K:\Kydras\Apps\CLI"
+pwsh -ExecutionPolicy Bypass -File .\kydras-cli.ps1

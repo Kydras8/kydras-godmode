@@ -1,183 +1,161 @@
+<# 
+    Update-KydrasEnterpriseCLI.ps1 (hardened)
+
+    Purpose:
+      - Bump version (Major / Minor / Patch / Build)
+      - Maintain a stable JSON schema:
+            {
+              "major": 1,
+              "minor": 0,
+              "patch": 0,
+              "build": 0,
+              "lastUpdated": "ISO-8601"
+            }
+      - Auto-heal any weird or broken version.json
+#>
+
 [CmdletBinding()]
 param(
-    [ValidateSet("major","minor","patch")]
-    [string]$BumpType = "patch",
+    [Parameter(Mandatory = $false)]
+    [ValidateSet('Major','Minor','Patch','Build')]
+    [string]$Bump = 'Patch',
 
-    [string]$ChangeSummary = "Automated build",
-
-    [string]$BundlesDir = $(Join-Path $PSScriptRoot "..\Bundles"),
-
-    [string]$LogRoot = $(Join-Path $PSScriptRoot "..\Logs\KydrasEnterpriseCli")
+    [Parameter(Mandatory = $false)]
+    [string]$Message = 'Kydras Enterprise CLI version update'
 )
 
-$ErrorActionPreference = "Stop"
+$ErrorActionPreference = 'Stop'
 
-Write-Host "=== Update-KydrasEnterpriseCli ===" -ForegroundColor Cyan
-Write-Host "BumpType   : $BumpType"
-Write-Host "BundlesDir : $BundlesDir"
-Write-Host "LogRoot    : $LogRoot"
-Write-Host ""
+$ScriptDir   = Split-Path -Parent $PSCommandPath
+$VersionFile = Join-Path $ScriptDir 'version.json'
 
-function Ensure-Directory {
-    param([string]$Path)
-    if (-not (Test-Path -LiteralPath $Path)) {
-        Write-Host "Creating directory: $Path"
-        New-Item -ItemType Directory -Path $Path -Force | Out-Null
+function New-DefaultVersionObject {
+    param()
+
+    return [pscustomobject]@{
+        major       = 1
+        minor       = 0
+        patch       = 0
+        build       = 0
+        lastUpdated = (Get-Date).ToString('o')
     }
 }
 
-function Get-CurrentVersion {
-    $baseDir = $PSScriptRoot
-    $versionJsonPath = Join-Path $baseDir "version.json"
-    $versionTextPath = Join-Path $baseDir "VERSION"
-
-    if (Test-Path -LiteralPath $versionJsonPath) {
-        $raw = Get-Content -LiteralPath $versionJsonPath -Raw
-        try {
-            $obj = $raw | ConvertFrom-Json
-            if ($obj.version) {
-                return [string]$obj.version
-            }
-        } catch {
-            Write-Warning "Failed to parse version.json; falling back to VERSION file if present."
-        }
-    }
-
-    if (Test-Path -LiteralPath $versionTextPath) {
-        $txt = (Get-Content -LiteralPath $versionTextPath | Select-Object -First 1).Trim()
-        if ($txt) { return $txt }
-    }
-
-    return "1.0.0"
-}
-
-function Get-NewVersion {
+function Normalize-VersionObject {
     param(
-        [string]$OldVersion,
-        [string]$BumpType
+        [Parameter(Mandatory = $true)]
+        [object]$InputObject
     )
 
-    if (-not ($OldVersion -match '^\d+\.\d+\.\d+$')) {
-        Write-Warning "Old version '$OldVersion' is not in x.y.z format. Resetting to 1.0.0."
-        $OldVersion = "1.0.0"
+    # If it's not a PSCustomObject, or doesn't look like a version object, reset to default
+    if (-not ($InputObject -is [pscustomobject])) {
+        return New-DefaultVersionObject
     }
 
-    $parts = $OldVersion.Split('.')
-    [int]$major = $parts[0]
-    [int]$minor = $parts[1]
-    [int]$patch = $parts[2]
+    $props = $InputObject.PSObject.Properties.Name
 
-    switch ($BumpType) {
-        "major" {
-            $major++
-            $minor = 0
-            $patch = 0
-        }
-        "minor" {
-            $minor++
-            $patch = 0
-        }
-        "patch" {
-            $patch++
-        }
+    $major = 1
+    $minor = 0
+    $patch = 0
+    $build = 0
+    $last  = (Get-Date).ToString('o')
+
+    if ($props -contains 'major' -and $InputObject.major -ne $null) {
+        [void][int]::TryParse($InputObject.major.ToString(), [ref]$major)
     }
 
-    return "{0}.{1}.{2}" -f $major, $minor, $patch
-}
-
-function Save-Version {
-    param(
-        [string]$Version
-    )
-
-    $baseDir = $PSScriptRoot
-    $versionJsonPath = Join-Path $baseDir "version.json"
-    $versionTextPath = Join-Path $baseDir "VERSION"
-
-    $obj = @{ version = $Version }
-    $json = $obj | ConvertTo-Json -Depth 2
-
-    Set-Content -Path $versionJsonPath -Value $json -Encoding UTF8
-    Set-Content -Path $versionTextPath -Value ($Version + "`n") -Encoding UTF8
-}
-
-function New-KydrasShortcuts {
-    param(
-        [string]$CliScriptDir
-    )
-
-    $cliScript = Join-Path $CliScriptDir "Kydras-EnterpriseCLI.ps1"
-    if (-not (Test-Path -LiteralPath $cliScript)) {
-        Write-Warning "CLI script not found at: $cliScript. Skipping shortcut creation."
-        return
+    if ($props -contains 'minor' -and $InputObject.minor -ne $null) {
+        [void][int]::TryParse($InputObject.minor.ToString(), [ref]$minor)
     }
 
-    $desktopPath        = [Environment]::GetFolderPath("Desktop")
-    $startMenuPath      = Join-Path ([Environment]::GetFolderPath("StartMenu")) "Programs"
-    $startupPath        = [Environment]::GetFolderPath("Startup")
-    $shortcutBaseName   = "Kydras Enterprise CLI"
-    $pwshPath           = "pwsh.exe"
+    if ($props -contains 'patch' -and $InputObject.patch -ne $null) {
+        [void][int]::TryParse($InputObject.patch.ToString(), [ref]$patch)
+    }
 
-    $shell = New-Object -ComObject WScript.Shell
+    if ($props -contains 'build' -and $InputObject.build -ne $null) {
+        [void][int]::TryParse($InputObject.build.ToString(), [ref]$build)
+    }
 
-    $targets = @(
-        @{ Name = "$shortcutBaseName.lnk";               Folder = $desktopPath      },
-        @{ Name = "$shortcutBaseName.lnk";               Folder = $startMenuPath    },
-        @{ Name = "$shortcutBaseName (AutoStart).lnk";   Folder = $startupPath      }
-    )
+    if ($props -contains 'lastUpdated' -and $InputObject.lastUpdated) {
+        $last = $InputObject.lastUpdated.ToString()
+    }
 
-    foreach ($t in $targets) {
-        $folder = $t.Folder
-        if (-not (Test-Path -LiteralPath $folder)) {
-            New-Item -ItemType Directory -Path $folder -Force | Out-Null
-        }
-
-        $linkPath = Join-Path $folder $t.Name
-        Write-Host "Creating shortcut: $linkPath"
-
-        $shortcut = $shell.CreateShortcut($linkPath)
-        $shortcut.TargetPath = $pwshPath
-        $shortcut.Arguments  = "-NoProfile -ExecutionPolicy Bypass -File `"$cliScript`""
-        $shortcut.WorkingDirectory = $CliScriptDir
-        $shortcut.IconLocation     = "$pwshPath,0"
-        $shortcut.Save()
+    return [pscustomobject]@{
+        major       = $major
+        minor       = $minor
+        patch       = $patch
+        build       = $build
+        lastUpdated = $last
     }
 }
 
-Ensure-Directory -Path $LogRoot
-Ensure-Directory -Path $BundlesDir
-
-$logFile = Join-Path $LogRoot ("Update-" + (Get-Date -Format "yyyyMMdd_HHmmss") + ".log")
-Write-Host "Logging to: $logFile"
-Start-Transcript -Path $logFile -Force | Out-Null
-
-try {
-    $oldVersion = Get-CurrentVersion
-    $newVersion = Get-NewVersion -OldVersion $oldVersion -BumpType $BumpType
-
-    Write-Host "Old version : $oldVersion"
-    Write-Host "New version : $newVersion"
-    Write-Host ""
-
-    Save-Version -Version $newVersion
-
-    $buildScriptPath = Join-Path $PSScriptRoot "Build-KydrasEnterpriseBundle.ps1"
-    if (-not (Test-Path -LiteralPath $buildScriptPath)) {
-        throw "Build script not found at: $buildScriptPath"
+function Get-VersionObject {
+    if (-not (Test-Path $VersionFile)) {
+        Write-Host "[!] version.json not found, creating a default one..." -ForegroundColor Yellow
+        return New-DefaultVersionObject
     }
 
-    Write-Host "Invoking build script..."
-    & $buildScriptPath -Version $newVersion -OutputDir $BundlesDir
+    $raw = Get-Content $VersionFile -Raw -ErrorAction Stop
+    if ([string]::IsNullOrWhiteSpace($raw)) {
+        Write-Host "[!] version.json is empty, using default values..." -ForegroundColor Yellow
+        return New-DefaultVersionObject
+    }
 
-    Write-Host "Creating desktop/start menu/startup shortcuts..."
-    New-KydrasShortcuts -CliScriptDir $PSScriptRoot
+    try {
+        $obj = $raw | ConvertFrom-Json -ErrorAction Stop
+    }
+    catch {
+        Write-Host "[!] version.json is invalid JSON, replacing with default..." -ForegroundColor Yellow
+        return New-DefaultVersionObject
+    }
 
-    Write-Host ""
-    Write-Host "Update complete."
-    Write-Host "Version      : $newVersion"
-    Write-Host "BundlesDir   : $BundlesDir"
-    Write-Host "ChangeSummary: $ChangeSummary"
+    return Normalize-VersionObject -InputObject $obj
 }
-finally {
-    Stop-Transcript | Out-Null
+
+Write-Host "=== Kydras Enterprise CLI Updater ==="
+Write-Host "Version file: $VersionFile"
+
+$version = Get-VersionObject
+
+$oldVersionString = "{0}.{1}.{2} (build {3})" -f $version.major, $version.minor, $version.patch, $version.build
+Write-Host "[*] Current version: $oldVersionString"
+
+switch ($Bump) {
+    'Major' {
+        $version.major++
+        $version.minor = 0
+        $version.patch = 0
+        $version.build = 0
+    }
+    'Minor' {
+        $version.minor++
+        $version.patch = 0
+        $version.build = 0
+    }
+    'Patch' {
+        $version.patch++
+        $version.build = 0
+    }
+    'Build' {
+        $version.build++
+    }
 }
+
+# Always bump build at least once per run if we didn't explicitly bump Build
+if ($Bump -ne 'Build') {
+    $version.build++
+}
+
+$version.lastUpdated = (Get-Date).ToString('o')
+
+$newVersionString = "{0}.{1}.{2} (build {3})" -f $version.major, $version.minor, $version.patch, $version.build
+Write-Host "[OK] New version: $newVersionString" -ForegroundColor Green
+
+# Write JSON atomically
+$tempFile = "$VersionFile.tmp"
+
+$version | ConvertTo-Json -Depth 4 | Set-Content -Path $tempFile -Encoding UTF8
+Move-Item -Path $tempFile -Destination $VersionFile -Force
+
+Write-Host "[OK] version.json updated." -ForegroundColor Green
+Write-Host "[*] Message: $Message"

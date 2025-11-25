@@ -1,0 +1,8 @@
+Kydras Systems Inc. Proprietary Software License
+Copyright (c) 2025 Kydras Systems Inc.
+
+This software and its associated documentation (the "Software") are the exclusive property of Kydras Systems Inc.
+You may NOT copy, modify, distribute, sublicense, or reverse-engineer the Software.
+
+All rights reserved.
+For commercial licensing or enterprise agreements, contact: admin@kydras-systems-inc.com

@@ -1,4 +1,40 @@
 <#
+    Patch-RunKydrasFullPipeline.ps1
+
+    Purpose:
+      - Backup and replace Run-KydrasFullPipeline.ps1 with a fixed v3 version.
+      - Fixes:
+          * Incorrect repo path resolution (owner/repo -> repo folder).
+          * PowerShell parser error on "$repoName: $_".
+      - Keeps:
+          * Logging to K:\Kydras\Logs\FullPipeline
+          * Integration with Kydras-RepoManager.ps1 (option 2).
+#>
+
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+
+$CliDir        = 'K:\Kydras\Apps\CLI'
+$PipelinePath  = Join-Path $CliDir 'Run-KydrasFullPipeline.ps1'
+
+if (-not (Test-Path $CliDir)) {
+    Write-Host "ERROR: CLI directory not found: $CliDir"
+    exit 1
+}
+
+if (-not (Test-Path $PipelinePath)) {
+    Write-Host "ERROR: Pipeline script not found: $PipelinePath"
+    exit 1
+}
+
+# Backup existing pipeline script
+$backupPath = "$PipelinePath.bak_{0}" -f (Get-Date -Format 'yyyyMMdd_HHmmss')
+Copy-Item -Path $PipelinePath -Destination $backupPath -Force
+Write-Host "[OK] Backup created: $backupPath"
+
+# New pipeline script content
+$scriptContent = @'
+<#
     Run-KydrasFullPipeline.ps1 (v3-fixed)
 
     Purpose:
@@ -187,3 +223,10 @@ foreach ($rawEntry in $entries) {
 
 Write-Log "=== Run-KydrasFullPipeline completed ==="
 Write-Host "[OK] Full pipeline run complete. Log: $LogFile"
+'@
+
+# Write new content to the pipeline file
+$scriptContent | Set-Content -Path $PipelinePath -Encoding UTF8
+
+Write-Host "[OK] Run-KydrasFullPipeline.ps1 has been patched successfully."
+Write-Host "You can now run it via Kydras-RepoManager.ps1 (option 2)."
