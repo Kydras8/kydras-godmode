@@ -6,7 +6,7 @@
         * User:  Kydras8  (owner, public + private)
         * Org:   Kydras-Systems-Inc (optional)
     - Destination: K:\Kydras\Repos\<repo-name>
-    - Uses REPLACE_WITH_SECRET_AT_RUNTIME from user env (PAT).
+    - Uses GITHUB_TOKEN from user env (PAT).
     - Idempotent: updates existing git repos, skips non-git folders.
 #>
 
@@ -38,12 +38,12 @@ if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
     throw "git is not on PATH. Install Git for Windows first."
 }
 
-if (-not $env:REPLACE_WITH_SECRET_AT_RUNTIME) {
-    throw "REPLACE_WITH_SECRET_AT_RUNTIME is not set. Set a user env var 'REPLACE_WITH_SECRET_AT_RUNTIME' to your PAT and open a new PowerShell."
+if (-not $env:GITHUB_TOKEN) {
+    throw "GITHUB_TOKEN is not set. Set a user env var 'GITHUB_TOKEN' to your PAT and open a new PowerShell."
 }
 
 $headers = @{
-    Authorization = "Bearer $($env:REPLACE_WITH_SECRET_AT_RUNTIME)"
+    Authorization = "Bearer $($env:GITHUB_TOKEN)"
     "User-Agent"  = "$Owner-RepoSync"
 }
 
@@ -138,7 +138,7 @@ foreach ($entry in $allRepos.GetEnumerator()) {
     }
 
     # Clone with PAT embedded (local only; you can scrub later with git remote set-url)
-    $authUrl = $url -replace '^https://', "https://$($env:REPLACE_WITH_SECRET_AT_RUNTIME)@"
+    $authUrl = $url -replace '^https://', "https://$($env:GITHUB_TOKEN)@"
 
     Log "Cloning from: $url"
     git clone $authUrl $localPath 2>&1 | Tee-Object -FilePath $LogFile -Append
@@ -154,4 +154,3 @@ Write-Host ""
 Write-Host "Clone-All-KydrasRepos.v2 completed." -ForegroundColor Cyan
 Write-Host "Log: $LogFile"
 Write-Host "Local repos under $Root : $($dirs.Count)"
-

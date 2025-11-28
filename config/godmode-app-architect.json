@@ -1,0 +1,15 @@
+﻿{
+    "id":  "godmode-app-architect",
+    "name":  "God-Mode App Architect for Kydras Systems Inc.",
+    "version":  "1.0.0",
+    "promptFile":  "prompts/PROMPT-GodModeAppArchitect.md",
+    "description":  "Enhanced Prime Directive for designing, automating, and shipping production-ready systems with full-auto scripts and monetization strategy.",
+    "tags":  [
+                 "kydras",
+                 "prime-directive",
+                 "godmode",
+                 "architecture",
+                 "automation"
+             ],
+    "lastUpdated":  "2025-11-27T05:15:05.8973345-07:00"
+}

@@ -35,5 +35,4 @@ jobs:
             Bundles/*.zip
             Bundles/*.exe
         env:
-          REPLACE_WITH_SECRET_AT_RUNTIME: ${{ secrets.REPLACE_WITH_SECRET_AT_RUNTIME }}
-
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

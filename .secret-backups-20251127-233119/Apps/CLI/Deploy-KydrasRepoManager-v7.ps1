@@ -76,11 +76,11 @@ Write-Host ""
 # --- Helper functions ---------------------------------------------------
 
 function Test-GitHubToken {
-    if ($env:REPLACE_WITH_SECRET_AT_RUNTIME -and $env:REPLACE_WITH_SECRET_AT_RUNTIME.Trim()) {
-        Write-Host "[OK] REPLACE_WITH_SECRET_AT_RUNTIME is set." -ForegroundColor Green
+    if ($env:GITHUB_TOKEN -and $env:GITHUB_TOKEN.Trim()) {
+        Write-Host "[OK] GITHUB_TOKEN is set." -ForegroundColor Green
         return $true
     } else {
-        Write-Warning "[WARN] REPLACE_WITH_SECRET_AT_RUNTIME is not set. Some operations may fail."
+        Write-Warning "[WARN] GITHUB_TOKEN is not set. Some operations may fail."
         return $false
     }
 }
@@ -224,4 +224,3 @@ Stop-Transcript | Out-Null
 '@ | Set-Content -LiteralPath $targetPath -Encoding UTF8
 
 Write-Host "Kydras-RepoManager.ps1 v7 deployed to: $targetPath" -ForegroundColor Green
-

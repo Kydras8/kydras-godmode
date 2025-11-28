@@ -1,7 +1,7 @@
 #!/usr/bin/env pwsh
 <#
     Fix-GitHubAuth.ps1
-    - Clears REPLACE_WITH_SECRET_AT_RUNTIME from Process/User/Machine scopes
+    - Clears GITHUB_TOKEN from Process/User/Machine scopes
     - Logs out GitHub CLI
     - Starts a clean GitHub login flow
     - Verifies API access
@@ -12,14 +12,14 @@ Write-Host "=== Resetting GitHub CLI authentication ===" -ForegroundColor Cyan
 # -----------------------------
 # STEP 1 — Remove env variables
 # -----------------------------
-Write-Host "`n[1] Clearing REPLACE_WITH_SECRET_AT_RUNTIME environment variables..." -ForegroundColor Yellow
+Write-Host "`n[1] Clearing GITHUB_TOKEN environment variables..." -ForegroundColor Yellow
 
 # Remove from current process
-Remove-Item Env:REPLACE_WITH_SECRET_AT_RUNTIME -ErrorAction SilentlyContinue
+Remove-Item Env:GITHUB_TOKEN -ErrorAction SilentlyContinue
 
 # Remove from User and Machine scopes
-[System.Environment]::SetEnvironmentVariable("REPLACE_WITH_SECRET_AT_RUNTIME", $null, "User")
-[System.Environment]::SetEnvironmentVariable("REPLACE_WITH_SECRET_AT_RUNTIME", $null, "Machine")
+[System.Environment]::SetEnvironmentVariable("GITHUB_TOKEN", $null, "User")
+[System.Environment]::SetEnvironmentVariable("GITHUB_TOKEN", $null, "Machine")
 
 Write-Host "[OK] Environment variable cleared." -ForegroundColor Green
 
@@ -61,4 +61,3 @@ try {
 }
 
 Write-Host "`n=== Fix-GitHubAuth.ps1 complete ===" -ForegroundColor Cyan
-

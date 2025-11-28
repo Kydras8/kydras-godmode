@@ -1,13 +1,12 @@
-# Deploy-KydrasRepoManager-v7.ps1
-# Backs up and writes the v7 Repo Manager script (fixes Full Pipeline call).
+# Deploy-KydrasRepoManager-v6.ps1
+# Backs up and writes the known-good v6 Repo Manager script.
 
 $ErrorActionPreference = 'Stop'
 
 $targetPath = 'K:\Kydras\Apps\CLI\Kydras-RepoManager.ps1'
 
-$targetDir = Split-Path $targetPath -Parent
-if (-not (Test-Path $targetDir)) {
-    Write-Error "Base directory for Repo Manager does not exist: $targetDir"
+if (-not (Test-Path (Split-Path $targetPath -Parent))) {
+    Write-Error "Base directory for Repo Manager does not exist: $(Split-Path $targetPath -Parent)"
 }
 
 if (Test-Path $targetPath) {
@@ -21,7 +20,7 @@ if (Test-Path $targetPath) {
 
 @'
 <# 
-    Kydras-RepoManager.ps1 (v7)
+    Kydras-RepoManager.ps1 (v6)
 
     Purpose:
       - Central menu for managing all Kydras repos
@@ -69,18 +68,18 @@ $logFile   = Join-Path $LogsRoot "RepoManager-$timestamp.log"
 
 Start-Transcript -Path $logFile -IncludeInvocationHeader -ErrorAction SilentlyContinue | Out-Null
 
-Write-Host "Kydras Repo Manager v7" -ForegroundColor Cyan
+Write-Host "Kydras Repo Manager v6" -ForegroundColor Cyan
 Write-Host "Logs: $logFile" -ForegroundColor DarkCyan
 Write-Host ""
 
 # --- Helper functions ---------------------------------------------------
 
 function Test-GitHubToken {
-    if ($env:REPLACE_WITH_SECRET_AT_RUNTIME -and $env:REPLACE_WITH_SECRET_AT_RUNTIME.Trim()) {
-        Write-Host "[OK] REPLACE_WITH_SECRET_AT_RUNTIME is set." -ForegroundColor Green
+    if ($env:GITHUB_TOKEN -and $env:GITHUB_TOKEN.Trim()) {
+        Write-Host "[OK] GITHUB_TOKEN is set." -ForegroundColor Green
         return $true
     } else {
-        Write-Warning "[WARN] REPLACE_WITH_SECRET_AT_RUNTIME is not set. Some operations may fail."
+        Write-Warning "[WARN] GITHUB_TOKEN is not set. Some operations may fail."
         return $false
     }
 }
@@ -153,8 +152,9 @@ function Invoke-FullPipeline {
         return
     }
     Write-Host "[RUN] Run-KydrasFullPipeline.ps1" -ForegroundColor Cyan
-    # Call pipeline WITHOUT extra parameters (script does not define ReposRoot / LogRoot yet)
-    & pwsh -NoLogo -NoProfile -ExecutionPolicy Bypass -File $PipelineScript
+    & pwsh -NoLogo -NoProfile -ExecutionPolicy Bypass -File $PipelineScript `
+        -ReposRoot $ReposRoot `
+        -LogRoot 'K:\Kydras\Logs\FullPipeline'
 }
 
 function Bulk-AddReposFromFile {
@@ -223,5 +223,4 @@ while ($true) {
 Stop-Transcript | Out-Null
 '@ | Set-Content -LiteralPath $targetPath -Encoding UTF8
 
-Write-Host "Kydras-RepoManager.ps1 v7 deployed to: $targetPath" -ForegroundColor Green
-
+Write-Host "Kydras-RepoManager.ps1 v6 deployed to: $targetPath" -ForegroundColor Green

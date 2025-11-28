@@ -409,7 +409,7 @@ jobs:
             Bundles/*.zip
             Bundles/*.exe
         env:
-          REPLACE_WITH_SECRET_AT_RUNTIME: ${{ secrets.REPLACE_WITH_SECRET_AT_RUNTIME }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 '@
 
 Ensure-Directory -Path $workflowDir
@@ -428,4 +428,3 @@ Write-Host "  pwsh -NoProfile -ExecutionPolicy Bypass -File `"$runPipelinePath`"
 Write-Host ""
 Write-Host "Then commit & push workflow and scripts to GitHub."
 Write-Host "To publish a release, create a tag 'vX.Y.Z' and push it."
-
