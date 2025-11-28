@@ -1,0 +1,4 @@
+Set-Location "K:\Kydras\Apps\CLI"
+pwsh -ExecutionPolicy Bypass -File .\Clone-All-KydrasRepos.ps1
+
+REPLACE_WITH_SECRET_AT_RUNTIME
