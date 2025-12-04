@@ -10,3 +10,4 @@ Apps/CLI/*.bak_*
 
 # Root-level backups
 Backups/
+.secret-backups-*/
